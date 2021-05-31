@@ -6,12 +6,16 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 
 class FirstFragment : Fragment() {
 
     private var generateButton: Button? = null
     private var previousResult: TextView? = null
+
+    private var minValue: TextView? = null
+    private var maxValue: TextView? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -34,6 +38,47 @@ class FirstFragment : Fragment() {
 
         generateButton?.setOnClickListener {
             // TODO: send min and max to the SecondFragment
+            minValue = view.findViewById(R.id.min_value)
+            maxValue = view.findViewById(R.id.max_value)
+
+            if(minValue?.text.isNullOrEmpty() || maxValue?.text.isNullOrEmpty() ) {
+                Toast.makeText(context, "Empty values not allowed!", Toast.LENGTH_LONG).show()
+            }
+            else{
+                val min = Integer.parseInt(minValue?.text.toString())
+                val max = Integer.parseInt(maxValue?.text.toString())
+
+                if(max < min){
+                    Toast.makeText(context, "MAX value must be above MIN value", Toast.LENGTH_LONG).show()
+                }
+                else {
+                    val transaction =  requireActivity().supportFragmentManager.beginTransaction()
+                    transaction.replace(R.id.container, SecondFragment.newInstance(min, max))
+                    transaction.disallowAddToBackStack()
+                    transaction.commit()
+                }
+            }
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        minValue = view?.findViewById(R.id.min_value)
+        maxValue = view?.findViewById(R.id.max_value)
+
+        outState.putString("MIN_VALUE", minValue?.text.toString())
+        outState.putString("MAX_VALUE", maxValue?.text.toString())
+
+        super.onSaveInstanceState(outState)
+    }
+
+    override fun onViewStateRestored(savedInstanceState: Bundle?) {
+        super.onViewStateRestored(savedInstanceState)
+        savedInstanceState?.let{
+            minValue = view?.findViewById(R.id.min_value)
+            maxValue = view?.findViewById(R.id.max_value)
+
+            minValue?.text = it.getString("MIN_VALUE")
+            maxValue?.text = it.getString("MAX_VALUE")
         }
     }
 
