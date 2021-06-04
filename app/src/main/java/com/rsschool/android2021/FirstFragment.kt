@@ -1,5 +1,6 @@
 package com.rsschool.android2021
 
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -16,6 +17,8 @@ class FirstFragment : Fragment() {
 
     private var minValue: TextView? = null
     private var maxValue: TextView? = null
+
+    private var listener: ActionPerformedListener? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -41,24 +44,39 @@ class FirstFragment : Fragment() {
             minValue = view.findViewById(R.id.min_value)
             maxValue = view.findViewById(R.id.max_value)
 
-            if(minValue?.text.isNullOrEmpty() || maxValue?.text.isNullOrEmpty() ) {
+            val result = arguments?.getInt(PREVIOUS_RESULT_KEY)
+            previousResult?.text = "Previous result: ${result.toString()}"
+
+            //Проверка на допустимые значения полей
+            //Проверяем заполнение полей
+            if(minValue?.text.isNullOrBlank() || maxValue?.text.isNullOrBlank() ) {
                 Toast.makeText(context, "Empty values not allowed!", Toast.LENGTH_LONG).show()
             }
             else{
-                val min = Integer.parseInt(minValue?.text.toString())
-                val max = Integer.parseInt(maxValue?.text.toString())
+                //Пробуем преобразовать заданные значения к числу
+                try{
+                    val min = Integer.parseInt(minValue?.text.toString())
+                    val max = Integer.parseInt(maxValue?.text.toString())
 
-                if(max < min){
-                    Toast.makeText(context, "MAX value must be above MIN value", Toast.LENGTH_LONG).show()
+                    if(max < min){
+                        Toast.makeText(context, "MAX value must be above MIN value", Toast.LENGTH_LONG).show()
+                    }
+                    else {
+                        listener?.openSecond(min, max)
+                    }
                 }
-                else {
-                    val transaction =  requireActivity().supportFragmentManager.beginTransaction()
-                    transaction.replace(R.id.container, SecondFragment.newInstance(min, max))
-                    transaction.disallowAddToBackStack()
-                    transaction.commit()
+                catch (e: NumberFormatException)
+                {
+                    //Если число не может быть приобразоввано к Int выдаем сообщение о некорректных данных
+                    Toast.makeText(context, "В поле введены не корректные данные", Toast.LENGTH_LONG).show()
                 }
             }
         }
+    }
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        listener = context as ActionPerformedListener
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

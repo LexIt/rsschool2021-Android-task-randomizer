@@ -1,5 +1,6 @@
 package com.rsschool.android2021
 
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -9,10 +10,12 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import kotlin.random.Random
 
-class SecondFragment : Fragment() {
+class SecondFragment : Fragment(), OnBackPressedListener {
 
     private var backButton: Button? = null
     private var result: TextView? = null
+
+    private var listener: ActionPerformedListener? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -35,16 +38,26 @@ class SecondFragment : Fragment() {
         backButton?.setOnClickListener {
             // TODO: implement back
             val prevNumber = Integer.parseInt(result?.text.toString())
-            val transaction = requireActivity().supportFragmentManager.beginTransaction()
-            transaction.replace(R.id.container, FirstFragment.newInstance(prevNumber))
-            transaction.disallowAddToBackStack()
-            transaction.commit()
+            listener?.openFirst(prevNumber)
         }
     }
 
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        listener = context as ActionPerformedListener
+    }
+
+    //переопределяем реакцию на нажатие системной кнопки возврат
+    override fun onBackPressed(){
+        val prevNumber = Integer.parseInt(result?.text.toString())
+        listener?.openFirst(prevNumber)
+    }
+
+    //Генерируем случайное число
     private fun generate(min: Int, max: Int): Int {
         // TODO: generate random number
-        return Random.nextInt(min, max)
+        //Если числа одинаковые то просто возвращаем любое из них
+        return if(min==max) min else Random.nextInt(min, max)
     }
 
     companion object {
